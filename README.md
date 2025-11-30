@@ -55,15 +55,15 @@ The system works with a **web-based frontend** and a **Java backend packaged as 
 
 ## 📁 Project Structure
 
-flight-reservation/
-│
-├── index.html # Login & Register
-├── flights.html # Search Flights
-├── bookings.html # User Bookings
-├── admin.html # Admin Panel
-│
-├── style.css # UI Styling
-└── app.js # Frontend Logic
+    flight-reservation/
+    │
+    ├── index.html # Login & Register
+    ├── flights.html # Search Flights
+    ├── bookings.html # User Bookings
+    ├── admin.html # Admin Panel
+    │
+    ├── style.css # UI Styling
+    └── app.js # Frontend Logic
 
 
 ---
@@ -110,12 +110,18 @@ You're ready to use:
 
 ---
 
-## 👨‍💻 Author
-**Your Name**  
-Email: your-email@example.com  
-LinkedIn / Portfolio: (optional)
+## Screenshots
+
+   <img width="1918" height="871" alt="Screenshot 2025-11-12 114610" src="https://github.com/user-attachments/assets/1e3603de-3734-4906-b58a-b9111599d509" />
+
+   <img width="1919" height="975" alt="Screenshot 2025-11-12 114047" src="https://github.com/user-attachments/assets/db955cac-0d49-4338-8138-e6905a340a59" />
+
+   <img width="1912" height="877" alt="Screenshot 2025-11-12 114445" src="https://github.com/user-attachments/assets/fa5fcea9-5efa-445d-b71b-ec962f106e07" />
+
+   <img width="1688" height="883" alt="Screenshot 2025-11-09 010557" src="https://github.com/user-attachments/assets/e89f317c-51f8-4d34-9f72-589d3092107d" />
 
 ---
+
 
 ## 📜 License
 Licensed under the **MIT License**.  
