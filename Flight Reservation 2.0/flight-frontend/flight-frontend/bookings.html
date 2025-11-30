@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>My Bookings</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .booking {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      .dark .booking {
+        background: rgba(40, 40, 40, 0.9);
+        color: #eee;
+      }
+
+      .booking:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      }
+
+      .booking h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--primary);
+      }
+
+      .flight-route {
+        font-weight: 600;
+        margin: 4px 0;
+        color: #333;
+      }
+
+      .dark .flight-route {
+        color: #ddd;
+      }
+
+      .flight-time {
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .dark .flight-time {
+        color: #aaa;
+      }
+
+      .status {
+        font-weight: bold;
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 0.85rem;
+      }
+
+      .status.CONFIRMED {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status.CANCELLED {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .status.PENDING {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #bookingsList p {
+        text-align: center;
+        margin-top: 1rem;
+        font-style: italic;
+      }
+
+      .theme-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: transform var(--transition);
+      }
+
+      .theme-btn:hover {
+        transform: rotate(30deg);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <button id="themeToggle">🌙</button>
+      <h1>My Bookings</h1>
+      <div>
+        <button id="btnBack">Search Flights</button>
+        <button id="openSettings" class="btn">⚙️ Settings</button>
+
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div id="bookingsList">Loading bookings...</div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+      ensureAuth();
+
+      document.getElementById("btnBack").addEventListener("click", () => {
+        location.href = "flights.html";
+      });
+      document.getElementById("btnLogout").addEventListener("click", logout);
+
+      function formatDateTime(iso) {
+        if (!iso) return "-";
+        const date = new Date(iso);
+        return date.toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        });
+      }
+
+      async function loadHistory() {
+        try {
+          const items = await apiGet("/bookings/history");
+          const list = document.getElementById("bookingsList");
+
+          if (!items || items.length === 0) {
+            list.innerHTML = "<p>No bookings found.</p>";
+            return;
+          }
+
+          list.innerHTML = items
+            .map((b) => {
+              const f = b.flight || {};
+              const dep = formatDateTime(f.departureTime);
+              const arr = formatDateTime(f.arrivalTime);
+
+              return `
+                <div class="booking">
+                  <h4>${escapeHtml(f.airline || "Unknown Airline")}</h4>
+                  <div class="flight-route">
+                    ✈️ ${escapeHtml(f.source || "-")} → ${escapeHtml(
+                f.destination || "-"
+              )}
+                  </div>
+                  <div class="flight-time">
+                    Departure: ${dep}<br/>
+                    Arrival: ${arr}<br/>
+                    Aircraft: ${escapeHtml(f.aircraftType || "-")}
+                  </div>
+                  <div>👤 Passenger: ${escapeHtml(
+                    b.passengerName || "-"
+                  )} &nbsp;|&nbsp; Seat: ${escapeHtml(b.seatNo || "-")}</div>
+                  <div>💰 Fare: ₹${f.fare ? f.fare.toFixed(2) : "—"}</div>
+                  <div>
+                    🕓 Booked on: ${formatDateTime(b.bookingTime)}
+                  </div>
+                  <div class="status ${b.status}">
+                    ${escapeHtml(b.status || "PENDING")}
+                  </div>
+                  ${
+                    b.status === "CONFIRMED"
+                      ? `<div style="margin-top:8px;">
+                          <button data-id="${b.bookingId}" class="btnCancel" style="background:var(--danger)">
+                            Cancel Booking
+                          </button>
+                        </div>`
+                      : ""
+                  }
+                </div>`;
+            })
+            .join("");
+
+          document.querySelectorAll(".btnCancel").forEach((b) =>
+            b.addEventListener("click", async (e) => {
+              const id = e.target.dataset.id;
+              if (!confirm("Cancel this booking?")) return;
+              try {
+                await apiDelete("/bookings/cancel/" + id);
+                alert("Booking cancelled successfully!");
+                loadHistory();
+              } catch (err) {
+                console.error(err);
+                alert("Cancel failed: " + (err.message || "Unknown error"));
+              }
+            })
+          );
+        } catch (err) {
+          console.error("Failed to load bookings:", err);
+          document.getElementById("bookingsList").innerHTML =
+            "<p>Error loading bookings. Please try again later.</p>";
+        }
+      }
+
+      loadHistory();
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>
+      // Theme toggle
+      const themeToggle = document.getElementById("themeToggle");
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
+        themeToggle.textContent = "☀️";
+      }
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        themeToggle.textContent = isDark ? "☀️" : "🌙";
+      });
+
+      // Subtle animation
+      anime({
+        targets: ".card, .top",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 900,
+        delay: anime.stagger(120),
+        easing: "easeOutQuint",
+      });
+    </script>
+    <div id="settingsPanel" class="settings-slide">
+  <div class="settings-header">
+    <span>Settings</span>
+    <button id="closeSettings">✖</button>
+  </div>
+  
+  <ul class="settings-list">
+    <li data-panel="acc">Accounts</li>
+    <li data-panel="dark">Dark Mode</li>
+    <li data-panel="time">Time & Language</li>
+    <li id="logoutAction" class="logout">Log Out</li>
+  </ul>
+
+  <div class="settings-content">
+
+    <!-- MAIN ACCOUNT MENU -->
+<div class="settings-page active" id="acc">
+  <h3>Accounts</h3>
+  <ul class="submenu">
+    <li data-sub="profile">Profile Settings</li>
+    <li data-sub="add">Add Account</li>
+  </ul>
+</div>
+
+<!-- PROFILE SUB-PANEL -->
+<div class="settings-page" id="profile">
+  <button class="back-btn" data-back="acc">← Back</button>
+  <h3>Profile Settings</h3>
+
+  <label>Name:</label>
+  <input id="profileName" type="text" placeholder="Your Name">
+
+  <label>Date of Birth:</label>
+  <input id="profileDOB" type="date">
+
+  <button id="deleteAccount" class="danger-btn">Delete Account</button>
+</div>
+
+<!-- ADD ACCOUNT SUB-PANEL -->
+<div class="settings-page" id="add">
+  <button class="back-btn" data-back="acc">← Back</button>
+  <h3>Add Account</h3>
+  <p>(Future feature)</p>
+</div>
+
+
+    <div class="settings-page" id="dark">
+      <h3>Dark Mode</h3>
+      <button id="darkToggle" class="btn">Toggle Theme</button>
+    </div>
+
+    <div class="settings-page" id="time">
+  <button class="back-btn" data-back="acc">← Back</button>
+  <h3>Time & Language</h3>
+
+  <!-- TIME SECTION -->
+  <h4>Current Time:</h4>
+  <div id="liveTime" style="margin: 8px 0; font-size: 24px; font-weight: bold;"></div>
+
+  <label>Time Format:</label>
+  <select id="timeFormat">
+    <option value="12">12-Hour (AM/PM)</option>
+    <option value="24">24-Hour</option>
+  </select>
+  <button id="applyFormat" class="btn" style="margin-top: 8px;">Apply</button>
+
+  <hr style="margin: 18px 0; border-color:#555;">
+
+  <!-- LANGUAGE SECTION -->
+  <h4>Language:</h4>
+  <select id="langSelect">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="bn">Bengali</option>
+  </select>
+  <button id="changeLang" class="btn" style="margin-top: 8px;">Change</button>
+</div>
+
+
+
+  </div>
+</div>
+
+  </body>
+</html>

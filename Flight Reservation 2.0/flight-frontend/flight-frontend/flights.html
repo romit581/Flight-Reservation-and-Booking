@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Flight Booking</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      :root {
+        --primary: #0078ff;
+        --danger: #ff4d4d;
+        --radius: 14px;
+        --transition: 0.3s ease;
+      }
+
+      /* ===== Global ===== */
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        margin: 0;
+        background: #f4f7fb;
+        color: #222;
+        transition: background var(--transition), color var(--transition);
+      }
+
+      body.dark {
+        background: #1b1b1b;
+        color: #fff;
+      }
+
+      /* ===== Header ===== */
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .top h1 {
+        margin: 0;
+        font-size: 1.6rem;
+        letter-spacing: 0.3px;
+      }
+
+      .top button {
+        border: none;
+        border-radius: var(--radius);
+        padding: 0.6rem 1.1rem;
+        font-weight: 600;
+        background: var(--primary);
+        color: #fff;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+
+      .top button:hover {
+        box-shadow: 0 4px 15px rgba(0, 120, 255, 0.4);
+      }
+
+      /* ===== Layout ===== */
+      .container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(15px);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        transition: background var(--transition);
+      }
+
+      .dark .card {
+        background: rgba(40, 40, 40, 0.6);
+      }
+
+      .card h2 {
+        margin-top: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 0.4rem;
+      }
+
+      /* ===== Forms ===== */
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+      }
+
+      input,
+      select,
+      button {
+        font-family: inherit;
+        font-size: 1rem;
+      }
+
+      input,
+      select {
+        flex: 1;
+        padding: 0.6rem;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        transition: border var(--transition);
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--primary);
+        outline: none;
+      }
+
+      button[type="submit"],
+      #btnAll {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        padding: 0.7rem 1.2rem;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+
+      /* ===== Filters ===== */
+      #filterAirline,
+      #filterSort {
+        flex: 1;
+      }
+
+      #filterFare {
+        accent-color: var(--primary);
+        width: 140px;
+      }
+
+      label span#showFare {
+        font-weight: 600;
+        color: var(--primary);
+        margin-left: 5px;
+      }
+
+      .card.results {
+        width: 100%;
+        max-width: none;
+        padding: 1rem 2rem;
+      }
+      /* ===== Flight Grid ===== */
+      #flightsList {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.2rem;
+        margin-top: 1.2rem;
+      }
+
+      .flight {
+        background: linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.9),
+          rgba(240, 244, 255, 0.8)
+        );
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        padding: 1rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+
+      .dark .flight {
+        background: linear-gradient(
+          145deg,
+          rgba(35, 35, 35, 0.8),
+          rgba(55, 55, 55, 0.7)
+        );
+      }
+
+      .flight:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      .flight strong {
+        font-size: 1.1rem;
+        color: var(--primary);
+      }
+
+      .flight .route {
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin: 0.2rem 0 0.5rem;
+      }
+
+      .flight .time {
+        font-size: 0.9rem;
+        color: #555;
+      }
+
+      .dark .flight .time {
+        color: #ccc;
+      }
+
+      .flight .details {
+        font-size: 0.9rem;
+        margin-top: 0.6rem;
+        color: #333;
+      }
+
+      .dark .flight .details {
+        color: #ddd;
+      }
+
+      .flight .btnBook {
+        align-self: flex-end;
+        margin-top: 0.8rem;
+        font-size: 0.95rem;
+      }
+
+      .btnBook {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        align-self: flex-start;
+        transition: all var(--transition);
+      }
+
+      .btnBook:hover {
+        transform: scale(1.08);
+        box-shadow: 0 5px 15px rgba(0, 120, 255, 0.4);
+      }
+
+      .btnBook:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      /* ===== Modal ===== */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .modal-content {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(15px);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+        /* 👇 New additions */
+        max-height: 90vh; /* limit total modal height */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* prevents outer scroll */
+      }
+
+      .dark .modal-content {
+        background: rgba(50, 50, 50, 0.8);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+      }
+
+      .modal-actions button {
+        flex: 1;
+        margin: 0 0.3rem;
+      }
+
+      /* ===== Seat Grid ===== */
+      .seat-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+        margin: 1rem 0;
+
+        /* 👇 scroll only seats */
+        overflow-y: auto;
+        flex: 1;
+        max-height: 60vh; /* limit height inside modal */
+        padding-right: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+
+      .seat {
+        background: #dfe9ff;
+        padding: 0.5rem;
+        text-align: center;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all var(--transition);
+      }
+
+      .seat:hover {
+        background: var(--primary);
+        color: #fff;
+        transform: scale(1.1);
+      }
+
+      .seat.booked {
+        background: #aaa;
+        color: #fff;
+        cursor: not-allowed;
+      }
+
+      .seat.selected {
+        background: var(--primary);
+        color: #fff;
+        transform: scale(1.1);
+      }
+
+      /* Optional: make it responsive */
+      @media (max-width: 480px) {
+        .seat-grid {
+          grid-template-columns: repeat(4, 1fr);
+          max-height: 50vh;
+        }
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1.2rem;
+      }
+
+      .filter-item {
+        flex: 1;
+        min-width: 180px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+
+      .filter-item label {
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #filterFare {
+        width: 100%;
+        accent-color: var(--primary);
+        cursor: pointer;
+      }
+
+      #showFare {
+        font-weight: 600;
+        color: var(--primary);
+        margin-top: 0.3rem;
+      }
+
+      .search-filter-panel {
+        padding: 1.5rem;
+        background: #f9fafc;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        max-width: 750px;
+        margin: 20px auto;
+        transition: all 0.3s ease;
+      }
+
+      .search-filter-panel h2 {
+        margin-bottom: 1rem;
+        text-align: center;
+        color: #222;
+      }
+
+      .search-form .row,
+      .filters .row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .search-form input,
+      .search-form button,
+      .filters select,
+      .filters input[type="range"] {
+        flex: 1;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        outline: none;
+        transition: 0.3s;
+      }
+
+      .search-form input:focus,
+      .filters select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+      }
+
+      .search-form button {
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+
+      .search-form button:hover {
+        transform: scale(1.05);
+      }
+
+      .filters {
+        margin-top: 1rem;
+      }
+
+      .filter-item {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 220px;
+      }
+
+      .filter-item label {
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        color: #444;
+      }
+
+      #filterFare {
+        width: 100%;
+      }
+
+      #showFare {
+        font-weight: bold;
+        color: #007bff;
+        margin-top: 0.3rem;
+      }
+
+      .filter-item.sort {
+        text-align: center;
+        margin-bottom: 0.8rem;
+      }
+
+      /* ===== Animations ===== */
+      .fadeInUp {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      .theme-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: transform var(--transition);
+      }
+
+      .theme-btn:hover {
+        transform: scale(1.1);
+        filter: brightness(1.1);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ===== Responsive ===== */
+      @media (max-width: 600px) {
+        .row {
+          flex-direction: column;
+        }
+        .top {
+          flex-direction: column;
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <button id="themeToggle" class="theme-btn">🌙</button>
+      <h1>✈️ Flight Booking</h1>
+      <div>
+        <button id="btnProfile">My Bookings</button>
+        <button id="openSettings" class="btn">⚙️ Settings</button>
+
+      </div>
+    </header>
+
+    <main class="container fadeInUp">
+      <section class="card search-filter-panel">
+        <form id="searchForm" class="search-form">
+          <div class="row">
+            <input name="source" placeholder="Source" required />
+            <input name="destination" placeholder="Destination" required />
+          </div>
+
+          <div class="row">
+            <input name="date" type="date" required />
+            <button type="submit">Search</button>
+            <button id="btnAll" type="button">Show All</button>
+          </div>
+        </form>
+
+        <div class="filters">
+          <div class="filter-item sort">
+            <label>Sort By</label>
+            <select id="filterSort">
+              <option value="">None</option>
+              <option value="low">Fare: Low → High</option>
+              <option value="high">Fare: High → Low</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="filter-item">
+              <label>Airline</label>
+              <select id="filterAirline">
+                <option value="">All</option>
+                <option>IndiGo</option>
+                <option>Air India</option>
+                <option>Vistara</option>
+                <option>SpiceJet</option>
+                <option>Emirates</option>
+                <option>Qatar Airways</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label>Max Fare</label>
+              <input
+                id="filterFare"
+                type="range"
+                min="2000"
+                max="50000"
+                value="30000"
+              />
+              <span id="showFare">₹30000</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card results">
+        <h2>Results</h2>
+        <div id="flightsList" class="flightsList">Loading...</div>
+      </section>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-content fadeInUp">
+        <h3>Select Your Seat</h3>
+        <div id="seatGrid" class="seat-grid"></div>
+        <form id="bookForm">
+          <input type="hidden" name="flightId" />
+          <input type="hidden" name="seatNo" id="seatNo" />
+          <label>
+            Name:
+            <input
+              name="passengerName"
+              required
+              id="passengerName"
+              placeholder="Enter your name"
+            />
+          </label>
+
+          <div class="modal-actions">
+            <button type="submit">Confirm</button>
+            <button
+              type="button"
+              id="btnCancelModal"
+              style="background: var(--danger)"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      ensureAuth(); // redirect to login if not authenticated
+      const flightsList = document.getElementById("flightsList");
+      const searchForm = document.getElementById("searchForm");
+      const btnAll = document.getElementById("btnAll");
+      const modal = document.getElementById("modal");
+      const bookForm = document.getElementById("bookForm");
+
+      // Autofill passenger name from localStorage
+      const passengerInput = document.getElementById("passengerName");
+      const profileName = localStorage.getItem("profileName");
+      if (profileName) {
+        passengerInput.value = profileName;
+        passengerInput.placeholder = profileName;
+      }
+
+      document.getElementById("btnLogout").addEventListener("click", () => {
+        logout();
+      });
+      document.getElementById("btnProfile").addEventListener("click", () => {
+        location.href = "bookings.html";
+      });
+
+      searchForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        await doSearch(data.source, data.destination, data.date || null);
+      });
+
+      btnAll.addEventListener("click", loadAll);
+
+      let allFlights = [];
+      let filteredFlights = [];
+
+      // Update filters on change
+      const filterAirline = document.getElementById("filterAirline");
+      const filterFare = document.getElementById("filterFare");
+      const filterSort = document.getElementById("filterSort");
+      const showFare = document.getElementById("showFare");
+      const sourceInput = searchForm.elements["source"];
+      const destinationInput = searchForm.elements["destination"];
+      const dateInput = searchForm.elements["date"];
+
+      filterAirline.addEventListener("change", applyFilters);
+      filterFare.addEventListener("input", () => {
+        showFare.textContent = "₹" + filterFare.value;
+        applyFilters();
+      });
+      filterSort.addEventListener("change", applyFilters);
+
+      async function loadAll() {
+        allFlights = await apiGet("/flights");
+        filteredFlights = [...allFlights];
+        sourceInput.value = "";
+        destinationInput.value = "";
+        dateInput.value = "";
+        applyFilters();
+      }
+
+      // Combined filter logic (works after search too)
+      function applyFilters() {
+        let list = [...filteredFlights];
+        const airline = filterAirline.value;
+        const maxFare = parseInt(filterFare.value);
+        const sort = filterSort.value;
+
+        if (airline) list = list.filter((f) => f.airline === airline);
+        list = list.filter((f) => f.fare <= maxFare);
+        if (sort === "low") list.sort((a, b) => a.fare - b.fare);
+        else if (sort === "high") list.sort((a, b) => b.fare - a.fare);
+
+        renderFlights(list);
+      }
+
+      // Search flights, then store results for filter chaining
+      async function doSearch(source, destination, date) {
+        const params = new URLSearchParams({ source, destination });
+        if (date) params.set("date", new Date(date).toISOString());
+        const flights = await apiGet("/flights/search?" + params.toString());
+        allFlights = flights;
+        filteredFlights = [...flights];
+        applyFilters(); // filters apply over search results
+      }
+
+      function renderFlights(list) {
+        if (!list || list.length === 0) {
+          flightsList.innerHTML = "<p>No flights found.</p>";
+          anime({
+            targets: ".flight",
+            translateX: [-40, 0],
+            opacity: [0, 1],
+            duration: 600,
+            easing: "easeOutExpo",
+            delay: anime.stagger(100), // each card animates one by one
+          });
+
+          return;
+        }
+
+        const rows = list
+          .map((f) => {
+            const flightId = f.flightId;
+            const avail = f.seatsAvailable ?? 0;
+            return `
+      <div class="flight">
+        <div>
+          <strong>${escapeHtml(f.airline)}</strong>
+          <div class="route">${escapeHtml(f.source)} → ${escapeHtml(
+              f.destination
+            )}</div>
+          <div class="time">
+            ✈️ Depart: ${formatDate(f.departureTime)}<br>
+            🕓 Arrive: ${formatDate(f.arrivalTime)}
+          </div>
+          <div class="details">
+            💺 Seats: ${avail} &nbsp;&nbsp; 💰 Fare: <b>₹${f.fare}</b>
+          </div>
+        </div>
+        <button ${
+          avail <= 0 ? "disabled" : ""
+        } data-id="${flightId}" class="btnBook">
+          ${avail <= 0 ? "Sold Out" : "Book Now"}
+        </button>
+      </div>`;
+          })
+          .join("");
+
+        flightsList.innerHTML = rows;
+
+        // reattach click handlers
+        document.querySelectorAll(".btnBook").forEach((b) =>
+          b.addEventListener("click", (ev) => {
+            const id = ev.target.dataset.id;
+            console.log("Booking flight ID:", id);
+            openBookModal(id);
+          })
+        );
+      }
+
+      function openBookModal(flightId) {
+        console.log("Booking flight ID:", flightId);
+        bookForm.flightId.value = flightId;
+        modal.classList.remove("hidden");
+      }
+      async function openBookModal(flightId) {
+        bookForm.flightId.value = flightId;
+        modal.classList.remove("hidden");
+
+        // Generate seats from 1A to 6F (36 seats)
+        const preSeats = [];
+        const rows = ["A", "B", "C", "D", "E", "F"];
+        for (let r = 1; r <= 6; r++) {
+          for (let c of rows) {
+            preSeats.push(r + c);
+          }
+        }
+        const seats = await apiGet("/flights/seatmap/" + flightId).catch(
+          () => preSeats
+        );
+
+        // Fetch booked seats
+        const booked = await apiGet("/bookings/seatmap/" + flightId).catch(
+          () => []
+        );
+
+        console.log("Booked seats:", booked);
+        console.log("All seats:", seats);
+        seatGrid.innerHTML = seats
+          .map(
+            (s) => `
+    <div class="seat ${booked.includes(s) ? "booked" : ""}" data-seat="${s}">
+      ${s}
+    </div>
+  `
+          )
+          .join("");
+
+        document.querySelectorAll(".seat:not(.booked)").forEach((seat) => {
+          seat.addEventListener("click", () => {
+            document
+              .querySelectorAll(".seat")
+              .forEach((x) => x.classList.remove("selected"));
+            seat.classList.add("selected");
+            bookForm.seatNo.value = seat.dataset.seat;
+          });
+        });
+      }
+
+      document
+        .getElementById("btnCancelModal")
+        .addEventListener("click", () => modal.classList.add("hidden"));
+
+      const seatNoInput = document.getElementById("seatNo");
+      bookForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!seatNoInput.value) {
+          alert("Please select a seat before confirming your booking.");
+          return;
+        }
+        const data = Object.fromEntries(new FormData(e.target));
+        try {
+          const payload = {
+            flightId: Number(data.flightId),
+            passengerName: data.passengerName,
+            seatNo: data.seatNo,
+          };
+          const res = await apiPost("/bookings/create", payload);
+          alert("Booked! Booking id: " + res.bookingId);
+          modal.classList.add("hidden");
+          loadAll();
+        } catch (err) {
+          alert("Booking failed: " + (err.message || JSON.stringify(err)));
+        }
+      });
+
+      // initial load
+      loadAll();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>
+      const themeToggle = document.getElementById("themeToggle");
+
+      // Load saved theme
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
+        themeToggle.textContent = "☀️";
+      }
+
+      // Toggle theme on click
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        themeToggle.textContent = isDark ? "☀️" : "🌙";
+      });
+    </script>
+    <canvas
+      id="ambientCanvas"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+      "
+    ></canvas>
+
+    <script>
+      const canvas = document.getElementById("ambientCanvas");
+      const ctx = canvas.getContext("2d");
+      let particles = [];
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      // Generate particles
+      for (let i = 0; i < 50; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 3 + 1,
+          dx: (Math.random() - 0.5) * 0.4,
+          dy: (Math.random() - 0.5) * 0.4,
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        particles.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          p.x += p.dx;
+          p.y += p.dy;
+          if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+        });
+
+        requestAnimationFrame(animate);
+      }
+      animate();
+    </script>
+    <script>
+      anime({
+        targets: ".card, .top",
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 900,
+        delay: anime.stagger(120),
+        easing: "easeOutQuint",
+      });
+    </script>
+    <div id="settingsPanel" class="settings-slide">
+  <div class="settings-header">
+    <span>Settings</span>
+    <button id="closeSettings">✖</button>
+  </div>
+  
+  <ul class="settings-list">
+    <li data-panel="acc">Accounts</li>
+    <li data-panel="dark">Dark Mode</li>
+    <li data-panel="time">Time & Language</li>
+    <li id="logoutAction" class="logout">Log Out</li>
+  </ul>
+
+  <div class="settings-content">
+
+    <!-- MAIN ACCOUNT MENU -->
+<div class="settings-page active" id="acc">
+  <h3>Accounts</h3>
+  <ul class="submenu">
+    <li data-sub="profile">Profile Settings</li>
+    <li data-sub="add">Add Account</li>
+  </ul>
+</div>
+
+<!-- PROFILE SUB-PANEL -->
+<div class="settings-page" id="profile">
+  <button class="back-btn" data-back="acc">← Back</button>
+  <h3>Profile Settings</h3>
+
+  <label>Name:</label>
+  <input id="profileName" type="text" placeholder="Your Name">
+
+  <label>Date of Birth:</label>
+  <input id="profileDOB" type="date">
+
+  <button id="deleteAccount" class="danger-btn">Delete Account</button>
+</div>
+
+<!-- ADD ACCOUNT SUB-PANEL -->
+<div class="settings-page" id="add">
+  <button class="back-btn" data-back="acc">← Back</button>
+  <h3>Add Account</h3>
+  <p>(Future feature)</p>
+</div>
+
+
+    <div class="settings-page" id="dark">
+      <h3>Dark Mode</h3>
+      <button id="darkToggle" class="btn">Toggle Theme</button>
+    </div>
+
+    <div class="settings-page" id="time">
+  <button class="back-btn" data-back="acc">← Back</button>
+  <h3>Time & Language</h3>
+
+  <!-- TIME SECTION -->
+  <h4>Current Time:</h4>
+  <div id="liveTime" style="margin: 8px 0; font-size: 24px; font-weight: bold;"></div>
+
+  <label>Time Format:</label>
+  <select id="timeFormat">
+    <option value="12">12-Hour (AM/PM)</option>
+    <option value="24">24-Hour</option>
+  </select>
+  <button id="applyFormat" class="btn" style="margin-top: 8px;">Apply</button>
+
+  <hr style="margin: 18px 0; border-color:#555;">
+
+  <!-- LANGUAGE SECTION -->
+  <h4>Language:</h4>
+  <select id="langSelect">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="bn">Bengali</option>
+  </select>
+  <button id="changeLang" class="btn" style="margin-top: 8px;">Change</button>
+</div>
+
+
+
+  </div>
+</div>
+
+  </body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flight App — Login / Register</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      /* ======= GLOBAL STYLES ======= */
+      :root {
+        --bg-light: #f4f7fb;
+        --bg-dark: #1b1b1b;
+        --card-bg: rgba(255, 255, 255, 0.12);
+        --primary: #0078ff;
+        --text-light: #fff;
+        --text-dark: #222;
+        --radius: 16px;
+        --transition: 0.3s ease;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        overflow-x: hidden;
+        transition: background var(--transition), color var(--transition);
+      }
+
+      body.dark {
+        background: var(--bg-dark);
+        color: var(--text-light);
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 2rem;
+        letter-spacing: 1px;
+        margin-top: 1rem;
+      }
+
+      .container {
+        max-width: 420px;
+        margin: 5vh auto;
+        padding: 1rem;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* centers both title + button group as one unit */
+        gap: 1rem; /* <-- adds spacing between title and settings button */
+        position: relative;
+      }
+
+      .settings-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: transform var(--transition);
+        margin-left: 0.5rem; /* fine-tune spacing */
+      }
+
+      .settings-btn:hover {
+        transform: rotate(90deg);
+      }
+
+      /* ======= CARD ======= */
+      .card {
+        margin-top: 2rem;
+        background: var(--card-bg);
+        backdrop-filter: blur(15px);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        transition: background var(--transition);
+      }
+
+      .dark .card {
+        background: rgba(40, 40, 40, 0.5);
+      }
+
+      .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .tab {
+        background: transparent;
+        border: 2px solid var(--primary);
+        border-radius: var(--radius);
+        padding: 0.5rem 1.2rem;
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition);
+      }
+
+      .tab.active {
+        background: var(--primary);
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.4s ease forwards;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+        margin-bottom: 0.8rem;
+        font-size: 0.9rem;
+      }
+
+      input {
+        padding: 0.6rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+        transition: border var(--transition);
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      button[type="submit"] {
+        width: 100%;
+        padding: 0.8rem;
+        border: none;
+        background: var(--primary);
+        color: white;
+        border-radius: var(--radius);
+        cursor: pointer;
+        font-weight: 600;
+        transition: background var(--transition);
+      }
+
+      button[type="submit"]:hover {
+        background: #005fcc;
+      }
+
+      .msg {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--primary);
+        min-height: 20px;
+      }
+
+      /* ======= SETTINGS PANEL ======= */
+      .settings-panel {
+        position: fixed;
+        top: 0;
+        right: -350px;
+        width: 300px;
+        height: 100%;
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border-left: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        z-index: 1001;
+        transition: right 0.5s ease;
+      }
+
+      .settings-panel h3 {
+        margin-top: 0;
+        text-align: center;
+      }
+
+      .settings-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+
+      .settings-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .theme-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: transform var(--transition);
+      }
+
+      .theme-btn:hover {
+        transform: rotate(30deg);
+      }
+
+      .section {
+        margin-top: 1.5rem;
+        text-align: left;
+      }
+
+      .section label {
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+
+      .section input {
+        width: 100%;
+        margin-bottom: 0.6rem;
+      }
+
+      .logout {
+        width: 100%;
+        background: #ff4d4d;
+        color: #fff;
+      }
+
+      .logout:hover {
+        background: #e63939;
+      }
+
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+        transition: opacity var(--transition);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ======= RESPONSIVE ======= */
+      @media (max-width: 480px) {
+        .card {
+          padding: 1rem;
+        }
+        h1 {
+          font-size: 1.6rem;
+        }
+        .tabs {
+          flex-direction: column;
+        }
+        .tab {
+          width: 100%;
+        }
+      }
+
+      /* Canvas */
+      #ambientCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      /* Profile & Logout buttons in Settings Panel */
+      #saveProfile,
+      .logout {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+      }
+
+      /* Save Profile button */
+      #saveProfile {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 3px 10px rgba(0, 120, 255, 0.25);
+      }
+
+      #saveProfile:hover {
+        background: #005fcc;
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 120, 255, 0.4);
+      }
+
+      /* Logout button */
+      .logout {
+        background: #ff4d4d;
+        color: #fff;
+        margin-top: 1rem;
+        box-shadow: 0 3px 10px rgba(255, 77, 77, 0.25);
+      }
+
+      .logout:hover {
+        background: #e63939;
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+      }
+
+      #saveProfile:hover,
+      .logout:hover {
+        filter: brightness(1.1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container">
+      <div class="header">
+        <h1>✈️ Flight Reservation</h1>
+        <button id="btnSettings" class="settings-btn" title="Open Settings">
+          ⚙
+        </button>
+      </div>
+
+      <section class="card">
+        <div class="tabs">
+          <button class="tab active" data-tab="loginTab">Login</button>
+          <button class="tab" data-tab="registerTab">Register</button>
+        </div>
+
+        <div id="loginTab" class="tab-content active">
+          <form id="loginForm">
+            <label
+              ><input name="username" required placeholder="Username"
+            /></label>
+            <label
+              ><input
+                name="password"
+                type="password"
+                required
+                placeholder="Password"
+            /></label>
+            <button type="submit">Continue</button>
+          </form>
+        </div>
+
+        <div id="registerTab" class="tab-content">
+          <form id="registerForm">
+            <label
+              ><input name="username" required placeholder="Username"
+            /></label>
+            <label
+              ><input name="email" type="email" required placeholder="Email"
+            /></label>
+            <label
+              ><input
+                name="password"
+                type="password"
+                required
+                placeholder="Password"
+            /></label>
+            <button type="submit">Submit</button>
+          </form>
+        </div>
+      </section>
+
+      <div id="msg" class="msg"></div>
+    </main>
+
+    <canvas id="ambientCanvas"></canvas>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel hidden">
+      <div class="settings-header">
+        <h3>⚙ Settings</h3>
+        <button id="themeToggle" class="theme-btn" title="Toggle Theme">
+          🌙
+        </button>
+      </div>
+
+      <div class="section">
+        <label>Name <input id="profileName" type="text" /></label>
+        <label>Date of Birth <input id="profileDob" type="date" /></label>
+        <button id="saveProfile">Save Profile</button>
+        <!-- <button id="btnLogout" class="logout">Logout</button> -->
+      </div>
+    </div>
+
+    <div id="settingsBackdrop" class="backdrop hidden"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+      // --- LOGIN ---
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = Object.fromEntries(new FormData(e.target));
+        localStorage.setItem("username", f.username);
+        try {
+          const res = await apiLogin(f.username, f.password);
+          msg.textContent = "✅ Logged in — redirecting...";
+          await redirectByRole(res.token);
+        } catch (err) {
+          msg.textContent = err.message || "Login failed ❌";
+        }
+      });
+
+      // --- REGISTER ---
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = Object.fromEntries(new FormData(e.target));
+        localStorage.setItem("username", f.username);
+        try {
+          const res = await apiRegister(f.username, f.email, f.password);
+          msg.textContent = "✅ Registered — redirecting...";
+          await redirectByRole(res.token);
+        } catch (err) {
+          msg.textContent = err.message || "Register failed ❌";
+        }
+      });
+
+      // --- TAB SWITCHING ---
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab")
+            .forEach((b) => b.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((c) => c.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(btn.dataset.tab).classList.add("active");
+        });
+      });
+
+      // --- ANIMATION ---
+      anime({
+        targets: "h1, .card",
+        opacity: [0, 1],
+        translateY: [25, 0],
+        duration: 900,
+        easing: "easeOutExpo",
+      });
+
+      // --- AMBIENT PARTICLES ---
+      const canvas = document.getElementById("ambientCanvas");
+      const ctx = canvas.getContext("2d");
+      const resizeCanvas = () => {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+      };
+      resizeCanvas();
+      addEventListener("resize", resizeCanvas);
+
+      const particles = Array.from({ length: 60 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.6,
+        dy: (Math.random() - 0.5) * 0.6,
+      }));
+
+      function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        for (let p of particles) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          p.x += p.dx;
+          p.y += p.dy;
+          if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+        }
+        requestAnimationFrame(animateParticles);
+      }
+      animateParticles();
+
+      // --- SETTINGS PANEL ---
+      const panel = document.getElementById("settingsPanel");
+      const backdrop = document.getElementById("settingsBackdrop");
+
+      btnSettings.addEventListener("click", () => {
+        panel.classList.remove("hidden");
+        backdrop.classList.remove("hidden");
+        anime({
+          targets: "#settingsPanel",
+          right: ["-350px", "0"],
+          duration: 500,
+          easing: "easeOutExpo",
+        });
+      });
+
+      backdrop.addEventListener("click", () => {
+        anime({
+          targets: "#settingsPanel",
+          right: ["0", "-350px"],
+          duration: 500,
+          easing: "easeInExpo",
+          complete: () => panel.classList.add("hidden"),
+        });
+        backdrop.classList.add("hidden");
+      });
+
+      // --- THEME TOGGLE ---
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
+        themeToggle.textContent = "☀️";
+      }
+
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const dark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", dark ? "dark" : "light");
+        themeToggle.textContent = dark ? "☀️" : "🌙";
+      });
+
+      // --- PROFILE SAVE ---
+      if (localStorage.getItem("profileName"))
+        profileName.value = localStorage.getItem("profileName");
+      if (localStorage.getItem("profileDob"))
+        profileDob.value = localStorage.getItem("profileDob");
+      saveProfile.addEventListener("click", () => {
+        localStorage.setItem("profileName", profileName.value);
+        localStorage.setItem("profileDob", profileDob.value);
+        alert("✅ Profile Saved!");
+      });
+
+      // --- LOGOUT ---
+      // btnLogout.addEventListener("click", () => {
+      //   localStorage.removeItem("flight_token");
+      //   location.href = "index.html";
+      // });
+    </script>
+    
+  </body>
+</html>
