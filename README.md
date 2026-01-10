@@ -18,7 +18,6 @@ The system works with a **web-based frontend** and a **Java backend packaged as 
 > The backend **must be running in the terminal** for the frontend to work.
 
 👉 **Download Required Backend JAR:**  
-(Add your file link here)
     https://drive.google.com/file/d/1WMDDu217uLJu77YCEjJ_nqZ5ZQCODeek/view?usp=drive_link
 
 ---
